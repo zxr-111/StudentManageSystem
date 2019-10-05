@@ -19,15 +19,20 @@ namespace StudentManageSystem.Pages
 
         protected void Button1_Click(object sender, EventArgs e)
         {
-            MySqlFunctions mySql = new MySqlFunctions(Response);
-            if (mySql.isconnected)
-            {
-                string str = mySql.ExecSql("select * from 专业");
-                var array = MySqlFunctions.string_to_array(str);
-                var jobj = MySqlFunctions.string_to_jobj(array[0].ToString());
-                Label1.Text = jobj["专业名称"].ToString();
-                mySql.SqlClose();
-
+            Teacher teacher = new Teacher();
+            teacher.teacher_id = "1";
+            teacher.change_str = "set teacher_age='60',teacher_sex='女'";
+            /*teacher.teacher_age = "27";
+            teacher.teacher_sex = "男";
+            teacher.teacher_name = "小强";
+            teacher.technical_title = "无";
+            teacher.telephone = "1234567891";
+            teacher.email = "sad465465@ss.com";*/
+            if (teacher.Change()) {
+                Label1.Text = "修改成功";
+            }
+            else {
+                Label1.Text = "修改失败";
             }
         }
     }

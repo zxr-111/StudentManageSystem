@@ -18,7 +18,7 @@ namespace StudentManageSystem.Methods
         public bool isconnected = false;
 
 
-        public MySqlFunctions(HttpResponse response)
+        public MySqlFunctions()
         {
             string str = System.Configuration.ConfigurationManager.ConnectionStrings["MyDB"].ConnectionString;
             try
@@ -28,7 +28,6 @@ namespace StudentManageSystem.Methods
             }
             catch (Exception e)
             {
-                response.Write("<script>alert('数据库链接失败')</script>");
                 return;
             }
             isconnected = true;
@@ -53,66 +52,64 @@ namespace StudentManageSystem.Methods
             }
             return dataReader;
         }
-        private static string DataReaderToJson(MySqlDataReader dataReader)
+        private string DataReaderToJson(MySqlDataReader dataReader)
         {
             StringBuilder jsonString = new StringBuilder();
             jsonString.Append("[");
-            while (dataReader.Read())
-            {
-                jsonString.Append("{");
-                for (int i = 0; i < dataReader.FieldCount; i++)
+            if (!dataReader.Read()) return "[{ }]";
+            else {
+                do
                 {
-                    Type type = dataReader.GetFieldType(i);
-                    string strKey = dataReader.GetName(i);
-                    string strValue = dataReader[i].ToString();
-                    jsonString.Append("\"" + strKey + "\":");
-                    strValue = String.Format(strValue, type);
-                    //datetime不能出现为空的情况,所以将其转换成字符串来进行处理。
-                    //需要加""的
-                    if (type == typeof(string) || type == typeof(DateTime))
+                    jsonString.Append("{");
+                    for (int i = 0; i < dataReader.FieldCount; i++)
                     {
-                        if (i <= dataReader.FieldCount - 1)
+                        Type type = dataReader.GetFieldType(i);
+                        string strKey = dataReader.GetName(i);
+                        string strValue = dataReader[i].ToString();
+                        jsonString.Append("\"" + strKey + "\":");
+                        strValue = String.Format(strValue, type);
+                        //datetime不能出现为空的情况,所以将其转换成字符串来进行处理。
+                        //需要加""的
+                        if (type == typeof(string) || type == typeof(DateTime))
                         {
+                            if (i <= dataReader.FieldCount - 1)
+                            {
 
-                            jsonString.Append("\"" + strValue + "\",");
+                                jsonString.Append("\"" + strValue + "\",");
+                            }
+                            else
+                            {
+                                jsonString.Append(strValue);
+                            }
                         }
+                        //不需要加""的
                         else
                         {
-                            jsonString.Append(strValue);
+                            if (i <= dataReader.FieldCount - 1)
+                            {
+                                jsonString.Append("" + strValue + ",");
+                            }
+                            else
+                            {
+                                jsonString.Append(strValue);
+                            }
                         }
                     }
-                    //不需要加""的
-                    else
-                    {
-                        if (i <= dataReader.FieldCount - 1)
-                        {
-                            jsonString.Append("" + strValue + ",");
-                        }
-                        else
-                        {
-                            jsonString.Append(strValue);
-                        }
-                    }
-                }
 
-                jsonString.Append("},");
+                    jsonString.Append("},");
+                } while (dataReader.Read());
             }
+ 
             dataReader.Close();
             jsonString.Remove(jsonString.Length - 3, 3);
             jsonString.Append("}");
             jsonString.Append("]");
             return jsonString.ToString();
         }
-        public string sqlReadTeacherData() {
-            string sql_str = "select * from 教师";
-            MySqlDataReader dataReader = sqlRead(sql_str);
-            if (dataReader != null) return DataReaderToJson(dataReader);
-            else return "sql查询出错";
-        }
         public string ExecSql(string sql_string) {
             MySqlDataReader dataReader = sqlRead(sql_string);
             if(dataReader!=null) return DataReaderToJson(dataReader);
-            else return "sql查询出错";
+            else return "sql出错";
         }
         public static JArray string_to_array(string str) {
             JArray jArray=null;
